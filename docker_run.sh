@@ -18,7 +18,6 @@ if [ $? -ne 0 ]; then
     echo "Building the executable failed!"
 fi
 
-clear 
 
 ./ml
 
