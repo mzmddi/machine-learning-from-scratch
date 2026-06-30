@@ -18,7 +18,9 @@ if [ $? -ne 0 ]; then
     echo "Building the executable failed!"
 fi
 
-
+if [ -f "./ml" ]; then
+clear
 ./ml
+fi
 
 echo " " 
