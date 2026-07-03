@@ -21,7 +21,7 @@ void ReLU::pass(Eigen::VectorXf *a)
     *a = a->cwiseMax(0.0f);
 };
 
-Linear::Linear(int in, int out)
+Linear::Linear(int in, int out) : in_feature(in), out_feature(out)
 {
     this->W.setRandom(in, out);
     // resized the mat W into in+1, out with rand vals [-1,1]
@@ -66,5 +66,3 @@ void Sigmoid::pass(Eigen::VectorXf *a)
 {
     *a = 1.0f / (1.0f + (-*a).array().exp());
 };
-
-

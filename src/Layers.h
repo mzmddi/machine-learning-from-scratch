@@ -13,6 +13,8 @@
 class Layer
 {
 public:
+    int in_feature;
+    int out_feature;
     std::string name;
 
     std::string get_name() const { return this->name; }
@@ -52,6 +54,8 @@ class Linear : public Layer
     Eigen::VectorXf b;
 
 public:
+    int in_feature;
+    int out_feature;
     Linear(int in, int out);
 
     void pass(Eigen::VectorXf *a);

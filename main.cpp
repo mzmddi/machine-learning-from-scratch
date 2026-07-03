@@ -1,25 +1,79 @@
 #include <iostream>
-#include "Matrix.h"
+
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
+#include "Layers.h"
+#include "Model.h"
 
 int main()
 {
 
-    std::vector<float> test{1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f};
-    std::vector<float> test2{1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f};
-    std::vector<float> test3{1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f};
+    // Eigen::Matrix<int, 3, 3> A;
+    // A << 1, 2, 3, 4, 5, 6, 7, 8, 9;
 
-    mymath::Matrix m = mymath::Matrix(2, 3, test3);
-    mymath::Matrix n = mymath::Matrix(2, 3, test3);
+    // Eigen::Matrix<int, 3, 3> B;
+    // B << 1, 2, 3, 4, 5, 6, 7, 8, 9;
 
-    mymath::Matrix g = mymath::Matrix::Identity(2);
+    // Eigen::Matrix<int, 3, 3> C = A.transpose() * B;
+
+    // std::cout << C << std::endl;
+
+    // Eigen::VectorXf r = Eigen::VectorXf::Random(2);
+
+    // Linear l = Linear(5, 8);
+    // // Linear m = Linear(8, 10);
+    // // Linear n = Linear(10, 2);
+    // // Linear o = Linear(2, 1);
+
+    // Sigmoid sig = Sigmoid();
+
+    // sig.pass(&r);
+
+    // std::cout << r;
+    // ReLU relu = ReLU();
+
+    // std::cout << "\n\n"
+    //           << r.transpose() << "\n\n";
+
+    // l.pass(&r);
+
+    // std::cout << r.transpose() << "\n\n";
+
+    // relu.pass(&r);
+
+    // std::cout << r.transpose() << "\n\n";
+
+    // m.pass(&r);
+
+    // std::cout << r.transpose() << "\n\n";
+
+    // relu.pass(&r);
+
+    // std::cout << r.transpose() << "\n\n";
+
+    // n.pass(&r);
+
+    // std::cout << r.transpose() << "\n\n";
+
+    // relu.pass(&r);
+
+    // std::cout << r.transpose() << "\n\n";
+
+    // o.pass(&r);
+
+    // std::cout << r.transpose();
+
+    Model m = Model();
+
+    m.add_linear(64, 512);
+    m.add_ReLU();
+    m.add_linear(512, 256);
+    m.add_ReLU();
+    m.add_linear(256, 10);
+    m.add_Sigmoid();
 
     m.print();
 
-    mymath::Matrix d = n.t();
-
-    d.print();
-
-    mymath::Matrix c = (m % n.t()) % (g * 2);
-
-    c.print();
+    return 0;
 }
