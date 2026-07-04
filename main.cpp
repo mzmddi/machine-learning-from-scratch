@@ -5,6 +5,8 @@
 
 #include "Layers.h"
 #include "Model.h"
+#include "Dataloader.h"
+#include "Sample.h"
 
 int main()
 {
@@ -64,16 +66,28 @@ int main()
 
     // std::cout << r.transpose();
 
+    // Model m = Model();
+
+    // m.add_linear(64, 512);
+    // m.add_ReLU();
+    // m.add_linear(512, 256);
+    // m.add_ReLU();
+    // m.add_linear(256, 10);
+    // m.add_Sigmoid();
+
+    // m.print();
+
+    DataLoader dl = DataLoader("../assets/mnist_train.csv", "../assets/mnist_test.csv", 10);
+
+    // Sample s = dl.get_sample();
+
+    // std::cout << s.features.size() << std::endl;
+
+    // std::cout << s.label << std::endl;
+
     Model m = Model();
 
-    m.add_linear(64, 512);
-    m.add_ReLU();
-    m.add_linear(512, 256);
-    m.add_ReLU();
-    m.add_linear(256, 10);
-    m.add_Sigmoid();
-
-    m.print();
+    m.set_dataloader(&dl);
 
     return 0;
 }

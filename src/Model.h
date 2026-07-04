@@ -15,6 +15,8 @@ class Model
     int num_of_layers;
     std::vector<Layer *> layer_list;
 
+    DataLoader *dl;
+
 public:
     Model();
 
@@ -22,11 +24,12 @@ public:
     void add_ReLU();
     void add_Sigmoid();
     void print();
-
-    void forward_pass(DataLoader &dataloader);
+    void set_dataloader(DataLoader *d) { this->dl = d; };
 
 private:
-    int check_layer_validity();
+    void forward_pass(Eigen::VectorXf *a);
+    // inner forward pass function.
+    // a is temporary  and will be destroyed inside the train loop
 };
 
 #endif

@@ -62,4 +62,17 @@ void Model::print()
     };
 };
 
-void Model::forward_pass(DataLoader &dataloader) {};
+void Model::forward_pass(Eigen::VectorXf *a)
+{
+    Eigen::VectorXf o = Eigen::VectorXf::Random(50);
+    // just a quick line to provide some mock data
+    // when done with dataloader, switch all i with a
+
+    for (int i = 0; i < this->layer_list.size(); i++)
+    {
+
+        this->layer_list.at(i)->pass(&o);
+    }
+
+    std::cout << "foward pass done" << std::endl;
+};
