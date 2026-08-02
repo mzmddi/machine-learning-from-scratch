@@ -2,11 +2,13 @@
 #define SAMPLE_H
 
 #include <vector>
+#include <Eigen/Core>
 
 struct Sample
 {
-    std::vector<float> features;
-    float label;
+    Eigen::VectorXf features;
+    Eigen::VectorXf label;
+    bool done = false;
 };
 
 #endif

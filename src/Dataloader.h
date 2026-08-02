@@ -18,7 +18,6 @@ class DataLoader
 public:
     std::string train_filename;
     std::string test_filename;
-    int batch_size;
     // param data
 
     std::vector<float> train_data;
@@ -35,10 +34,10 @@ public:
 
     int train_idx = 0;
 
-    DataLoader(std::string train_filename, std::string test_filename, int batch_size);
+    DataLoader(std::string train_filename, std::string test_filename);
 
     void print();
 
-    Sample get_train_sample();
+    void next(Sample &s);
 };
 #endif

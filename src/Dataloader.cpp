@@ -9,7 +9,7 @@
 #include "Sample.h"
 // --- CODE ---
 
-DataLoader::DataLoader(std::string train_filename, std::string test_filename, int batch_size) : train_filename(train_filename), test_filename(test_filename), batch_size(batch_size)
+DataLoader::DataLoader(std::string train_filename, std::string test_filename) : train_filename(train_filename), test_filename(test_filename)
 {
 
     std::ifstream file(train_filename);
@@ -44,8 +44,9 @@ DataLoader::DataLoader(std::string train_filename, std::string test_filename, in
 
         this->train_label.push_back(std::stof(row[0]));
 
-        for (int i = 0; i < row.size(); i++)
+        for (int i = 1; i < row.size(); i++)
         {
+            // skip the row[0] since the first element is the label
             this->train_data.push_back(std::stof(row[i]));
         }
 
@@ -86,7 +87,7 @@ DataLoader::DataLoader(std::string train_filename, std::string test_filename, in
 
         this->test_label.push_back(std::stof(row[0]));
 
-        for (int i = 0; i < row.size(); i++)
+        for (int i = 1; i < row.size(); i++)
         {
             this->test_data.push_back(std::stof(row[i]));
         }
@@ -100,29 +101,51 @@ void DataLoader::print()
     std::cout << "\n===== DataLoader::print() =====" << std::endl;
     std::cout << "this->train_filename: " << this->train_filename << std::endl;
     std::cout << "this->test_filename: " << this->test_filename << std::endl;
-    std::cout << "this->batch_size: " << this->batch_size << std::endl;
+    std::cout << "\n"
+              << std::endl;
     std::cout << "this->train_data.size(): " << this->train_data.size() << std::endl;
     std::cout << "this->train_label.size(): " << this->train_label.size() << std::endl;
     std::cout << "this->test_data.size(): " << this->test_data.size() << std::endl;
     std::cout << "this->test_label(): " << this->test_label.size() << std::endl;
+    std::cout << "\n"
+              << std::endl;
     std::cout << "this->num_of_features: " << this->num_of_features << std::endl;
     std::cout << "this->num_of_train_sample: " << this->num_of_train_sample << std::endl;
     std::cout << "this->num_of_test_sample: " << this->num_of_test_sample << std::endl;
 }
 
-Sample DataLoader::get_train_sample()
+void DataLoader::next(Sample &s)
 {
-    Sample s;
 
-    int row_stride = this->num_of_features;
+    if (this->train_idx == this->num_of_train_sample)
+    {
+        s.done = true;
+    }
+    else
+    {
 
-    int start_of_row = this->train_idx * row_stride;
+        int label_position = this->train_label[train_idx];
 
-    s.label = this->train_label[train_idx];
+        Eigen::VectorXf l(10);
 
-    s.features.assign(this->train_data.begin() + start_of_row, this->train_data.begin() + start_of_row + row_stride);
+        for (int i = 0; i < 10; i++)
+        {
+            if (i == label_position)
+            {
+                l[i] = 1.0f;
+            }
+            else
+            {
+                l[i] = 0.0f;
+            }
+        }
 
-    this->train_idx += 1;
+        s.label = l;
 
-    return s;
+        const float *feature_ptr = this->train_data.data() + (this->train_idx * this->num_of_features);
+
+        s.features = Eigen::Map<const Eigen::VectorXf>(feature_ptr, this->num_of_features);
+
+        this->train_idx += 1;
+    }
 }

@@ -5,6 +5,7 @@
 
 #include "Model.h"
 #include "Layers.h"
+#include "Sample.h"
 #include <iostream>
 
 // --- CODE ---
@@ -29,9 +30,9 @@ void Model::add_ReLU()
     this->layer_list.push_back(r);
 }
 
-void Model::add_Sigmoid()
+void Model::add_Softmax()
 {
-    Sigmoid *s = new Sigmoid();
+    Softmax *s = new Softmax();
     this->layer_list.push_back(s);
 }
 
@@ -62,17 +63,38 @@ void Model::print()
     };
 };
 
-void Model::forward_pass(Eigen::VectorXf *a)
+void Model::forward_pass()
 {
-    Eigen::VectorXf o = Eigen::VectorXf::Random(50);
-    // just a quick line to provide some mock data
-    // when done with dataloader, switch all i with a
 
     for (int i = 0; i < this->layer_list.size(); i++)
     {
 
-        this->layer_list.at(i)->pass(&o);
+        this->layer_list.at(i)->pass(this->s.features);
     }
-
-    std::cout << "foward pass done" << std::endl;
 };
+
+void Model::train()
+{
+    // void print_start_training();
+
+    for (int i = 0; i < this->epochs; i++)
+    {
+
+        std::cout << "=== EPOCH " << i + 1 << " ===" << std::endl;
+
+        int count = 0;
+
+        while (true)
+        {
+            this->dl->next(this->s);
+            if (this->s.done)
+            {
+                break;
+            }
+            this->forward_pass();
+
+            std::cout << this->s.features << std::endl;
+            std::exit(0);
+        }
+    }
+}

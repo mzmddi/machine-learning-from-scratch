@@ -19,7 +19,7 @@ public:
 
     std::string get_name() const { return this->name; }
 
-    void pass(Eigen::VectorXf *a);
+    virtual void pass(Eigen::VectorXf &a);
 };
 
 class ReLU : public Layer
@@ -27,7 +27,9 @@ class ReLU : public Layer
 public:
     ReLU();
 
-    void pass(Eigen::VectorXf *a);
+    Eigen::VectorXf z;
+
+    void pass(Eigen::VectorXf &a) override;
 };
 
 class Linear : public Layer
@@ -50,24 +52,25 @@ class Linear : public Layer
     so => Shape of W = (in + 1, out)
     */
 
-    Eigen::MatrixXf W;
-    Eigen::VectorXf b;
-
 public:
+    Eigen::MatrixXf W;
+    Eigen::MatrixXf grad;
+    Eigen::VectorXf act;
     int in_feature;
     int out_feature;
     Linear(int in, int out);
 
-    void pass(Eigen::VectorXf *a);
+    void pass(Eigen::VectorXf &a) override;
 
     void print();
 };
 
-class Sigmoid : public Layer
+class Softmax : public Layer
 {
 public:
-    Sigmoid();
-    void pass(Eigen::VectorXf *a);
+    Softmax();
+    Eigen::VectorXf z;
+    void pass(Eigen::VectorXf &a) override;
 };
 
 #endif

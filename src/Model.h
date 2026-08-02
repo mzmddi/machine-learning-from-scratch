@@ -8,6 +8,7 @@
 #include <vector>
 #include "Layers.h"
 #include "Dataloader.h"
+#include "Sample.h"
 // --- CODE ---
 
 class Model
@@ -17,17 +18,26 @@ class Model
 
     DataLoader *dl;
 
+    Sample s;
+
+    bool initialised_sample = false;
+
+    int epochs = 2;
+
 public:
     Model();
 
     void add_linear(int in, int out);
     void add_ReLU();
-    void add_Sigmoid();
+    void add_Softmax();
     void print();
     void set_dataloader(DataLoader *d) { this->dl = d; };
+    void set_epochs(int s) { this->epochs = s; };
+
+    void train();
 
 private:
-    void forward_pass(Eigen::VectorXf *a);
+    void forward_pass();
     // inner forward pass function.
     // a is temporary  and will be destroyed inside the train loop
 };

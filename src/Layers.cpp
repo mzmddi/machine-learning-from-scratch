@@ -3,27 +3,37 @@
 // --- INCLUDES ---
 #include <Eigen/Dense>
 #include <string>
+#include <iostream>
 #include <cmath>
 
 #include "Layers.h"
 
 // --- CODE ---
 
-void Layer::pass(Eigen::VectorXf *a) { std::exit(1); };
+void Layer::pass(Eigen::VectorXf &a)
+{
+
+    std::cout << "Failed to initiate layer::pass(). Fallback parent function." << std::endl;
+
+    std::exit(1);
+};
 
 ReLU::ReLU()
 {
     this->name = "ReLU";
 };
 
-void ReLU::pass(Eigen::VectorXf *a)
+void ReLU::pass(Eigen::VectorXf &a)
 {
-    *a = a->cwiseMax(0.0f);
+    a = a.cwiseMax(0.0f);
+
+    this->z.resize(a.size());
+    this->z = a;
 };
 
 Linear::Linear(int in, int out) : in_feature(in), out_feature(out)
 {
-    this->W.setRandom(in, out);
+    this->W.setRandom(in + 1, out);
     // resized the mat W into in+1, out with rand vals [-1,1]
     // this is too big for ML so we need to scale it down using Xavier Glorot technique or way idk what its called
 
@@ -32,10 +42,9 @@ Linear::Linear(int in, int out) : in_feature(in), out_feature(out)
 
     this->W *= scale;
 
-    this->b.setRandom(out);
-    this->b *= scale;
-
     this->name = "Linear";
+
+    this->grad = Eigen::MatrixXf::Zero(in + 1, out);
 };
 
 void Linear::print()
@@ -52,17 +61,27 @@ void Linear::print()
               << "========================================";
 };
 
-void Linear::pass(Eigen::VectorXf *a)
+void Linear::pass(Eigen::VectorXf &a)
 {
-    *a = ((this->W.transpose()) * (*a)) + this->b;
+
+    Eigen::VectorXf a_aug(a.size() + 1);
+    a_aug << a, 1.0f;
+    a = this->W.transpose() * a_aug;
+
+    this->act.resize(a.size());
+    this->act = a;
 };
 
-Sigmoid::Sigmoid()
+Softmax::Softmax()
 {
-    this->name = "Sigmoid";
+    this->name = "Softmax";
 };
 
-void Sigmoid::pass(Eigen::VectorXf *a)
+void Softmax::pass(Eigen::VectorXf &a)
 {
-    *a = 1.0f / (1.0f + (-*a).array().exp());
+    a = (a.array() - a.maxCoeff()).exp();
+    a /= a.sum();
+
+    this->z.resize(a.size());
+    this->z = a;
 };
