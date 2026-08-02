@@ -19,6 +19,8 @@ int main()
 
     m.set_dataloader(&dl);
 
+    m.set_loss("CCE");
+
     m.add_linear(784, 500);
     m.add_ReLU();
     m.add_linear(500, 250);

@@ -9,12 +9,15 @@
 #include "Layers.h"
 #include "Dataloader.h"
 #include "Sample.h"
+#include "Loss.h"
 // --- CODE ---
 
 class Model
 {
     int num_of_layers;
     std::vector<Layer *> layer_list;
+
+    Loss *loss;
 
     DataLoader *dl;
 
@@ -33,6 +36,8 @@ public:
     void print();
     void set_dataloader(DataLoader *d) { this->dl = d; };
     void set_epochs(int s) { this->epochs = s; };
+
+    void set_loss(std::string s);
 
     void train();
 

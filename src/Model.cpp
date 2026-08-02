@@ -6,6 +6,7 @@
 #include "Model.h"
 #include "Layers.h"
 #include "Sample.h"
+#include "Loss.h"
 #include <iostream>
 
 // --- CODE ---
@@ -73,6 +74,25 @@ void Model::forward_pass()
     }
 };
 
+void Model::set_loss(std::string s)
+{
+    if (s == "CCE")
+    {
+
+        CCE *cce = new CCE();
+
+        this->loss = cce;
+    }
+    else
+    {
+        std::cout << "String did not match any Loss functions. Please revise the list." << std::endl;
+        std::exit(1);
+    }
+
+    // for other losses, just append more `else if` here to add them.
+    // must follow the pattern inherited by the parent class Loss.
+}
+
 void Model::train()
 {
     // void print_start_training();
@@ -93,7 +113,11 @@ void Model::train()
             }
             this->forward_pass();
 
-            std::cout << this->s.features << std::endl;
+            std::cout << this->s.features << "\n"
+                      << std::endl;
+
+            float loss = this->loss->compute_loss(this->s);
+            std::cout << "Loss: " << loss << std::endl;
             std::exit(0);
         }
     }
