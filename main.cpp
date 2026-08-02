@@ -11,7 +11,9 @@
 int main()
 {
 
+    std::cout << " --- Start ---" << std::endl;
     DataLoader dl = DataLoader("../assets/mnist_train.csv", "../assets/mnist_test.csv");
+    std::cout << "Done creating the Dataloader" << std::endl;
 
     // dl.print();
 
@@ -27,6 +29,8 @@ int main()
     m.add_ReLU();
     m.add_linear(250, 10);
     m.add_Softmax();
+
+    std::cout << "--- start training ---" << std::endl;
 
     m.train();
 

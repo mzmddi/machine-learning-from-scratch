@@ -20,6 +20,7 @@ public:
     std::string get_name() const { return this->name; }
 
     virtual void pass(Eigen::VectorXf &a);
+    virtual void backward(Eigen::VectorXf &delta);
 };
 
 class ReLU : public Layer
@@ -27,9 +28,10 @@ class ReLU : public Layer
 public:
     ReLU();
 
-    Eigen::VectorXf z;
+    Eigen::VectorXf input_cache;
 
     void pass(Eigen::VectorXf &a) override;
+    void backward(Eigen::VectorXf &delta) override;
 };
 
 class Linear : public Layer
@@ -55,12 +57,13 @@ class Linear : public Layer
 public:
     Eigen::MatrixXf W;
     Eigen::MatrixXf grad;
-    Eigen::VectorXf act;
+    Eigen::VectorXf input_cache;
     int in_feature;
     int out_feature;
     Linear(int in, int out);
 
     void pass(Eigen::VectorXf &a) override;
+    void backward(Eigen::VectorXf &delta) override;
 
     void print();
 };
@@ -71,6 +74,7 @@ public:
     Softmax();
     Eigen::VectorXf z;
     void pass(Eigen::VectorXf &a) override;
+    void backward(Eigen::VectorXf &delta) override;
 };
 
 #endif

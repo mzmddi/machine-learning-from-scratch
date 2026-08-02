@@ -45,6 +45,9 @@ private:
     void forward_pass();
     // inner forward pass function.
     // a is temporary  and will be destroyed inside the train loop
+
+    void back();
+    // backprop function
 };
 
 #endif

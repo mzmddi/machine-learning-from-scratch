@@ -93,6 +93,19 @@ void Model::set_loss(std::string s)
     // must follow the pattern inherited by the parent class Loss.
 }
 
+void Model::back()
+{
+
+    Eigen::VectorXf ev = this->s.features - this->s.label;
+
+    for (int i = static_cast<int>(this->layer_list.size()) - 1; i >= 0; --i)
+    {
+        // going through the layers backwards starting at the end.
+
+        this->layer_list[i]->backward(ev);
+    }
+}
+
 void Model::train()
 {
     // void print_start_training();
@@ -101,8 +114,6 @@ void Model::train()
     {
 
         std::cout << "=== EPOCH " << i + 1 << " ===" << std::endl;
-
-        int count = 0;
 
         while (true)
         {
@@ -113,11 +124,11 @@ void Model::train()
             }
             this->forward_pass();
 
-            std::cout << this->s.features << "\n"
+            float loss = this->loss->compute_loss(this->s);
+            std::cout << "Loss: " << loss << "\n"
                       << std::endl;
 
-            float loss = this->loss->compute_loss(this->s);
-            std::cout << "Loss: " << loss << std::endl;
+            this->back();
             std::exit(0);
         }
     }

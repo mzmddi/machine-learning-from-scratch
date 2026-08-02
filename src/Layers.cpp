@@ -18,6 +18,12 @@ void Layer::pass(Eigen::VectorXf &a)
     std::exit(1);
 };
 
+void Layer::backward(Eigen::VectorXf &delta)
+{
+    std::cout << "Failed to call backward() child. Fallback parent function." << std::endl;
+    std::exit(1);
+}
+
 ReLU::ReLU()
 {
     this->name = "ReLU";
@@ -25,15 +31,22 @@ ReLU::ReLU()
 
 void ReLU::pass(Eigen::VectorXf &a)
 {
-    a = a.cwiseMax(0.0f);
 
-    this->z.resize(a.size());
-    this->z = a;
+    this->input_cache.resize(a.size());
+    this->input_cache = a;
+
+    a = a.array().cwiseMax(0.0f);
 };
+
+void ReLU::backward(Eigen::VectorXf &delta)
+{
+    Eigen::VectorXf relu_grad = (this->input_cache.array() > 0.0f).cast<float>();
+    delta = delta.cwiseProduct(relu_grad);
+}
 
 Linear::Linear(int in, int out) : in_feature(in), out_feature(out)
 {
-    this->W.setRandom(in + 1, out);
+    this->W.setRandom(out, in + 1);
     // resized the mat W into in+1, out with rand vals [-1,1]
     // this is too big for ML so we need to scale it down using Xavier Glorot technique or way idk what its called
 
@@ -44,7 +57,7 @@ Linear::Linear(int in, int out) : in_feature(in), out_feature(out)
 
     this->name = "Linear";
 
-    this->grad = Eigen::MatrixXf::Zero(in + 1, out);
+    this->grad = Eigen::MatrixXf::Zero(out, in + 1);
 };
 
 void Linear::print()
@@ -64,13 +77,26 @@ void Linear::print()
 void Linear::pass(Eigen::VectorXf &a)
 {
 
+    this->input_cache.resize(a.size());
+    this->input_cache = a;
+
     Eigen::VectorXf a_aug(a.size() + 1);
     a_aug << a, 1.0f;
-    a = this->W.transpose() * a_aug;
-
-    this->act.resize(a.size());
-    this->act = a;
+    a = this->W * a_aug;
 };
+
+void Linear::backward(Eigen::VectorXf &delta)
+{
+
+    Eigen::VectorXf input_aug(this->input_cache.size() + 1);
+    input_aug << this->input_cache, 1.0f;
+
+    this->grad = delta * input_aug.transpose();
+
+    Eigen::VectorXf delta_prev_aug = this->W.transpose() * delta;
+
+    delta = delta_prev_aug.head(input_cache.size());
+}
 
 Softmax::Softmax()
 {
@@ -85,3 +111,11 @@ void Softmax::pass(Eigen::VectorXf &a)
     this->z.resize(a.size());
     this->z = a;
 };
+
+void Softmax::backward(Eigen::VectorXf &delta)
+{
+    int i = 1;
+
+    // do nothing since this is the last layer and the equation is just collapsed to y^ - y calculated outside
+    // we have to have something since the layers call this function for  all layers
+}
