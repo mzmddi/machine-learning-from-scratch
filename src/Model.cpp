@@ -106,6 +106,18 @@ void Model::back()
     }
 }
 
+void Model::update()
+{
+    int size = this->layer_list.size();
+
+    for (int i = 0; i < size; i++)
+    {
+        this->layer_list[i]->update(this->lr);
+    }
+
+    std::cout << "done with updating the weights" << std::endl;
+}
+
 void Model::train()
 {
     // void print_start_training();

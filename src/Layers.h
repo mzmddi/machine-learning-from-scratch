@@ -21,6 +21,7 @@ public:
 
     virtual void pass(Eigen::VectorXf &a);
     virtual void backward(Eigen::VectorXf &delta);
+    virtual void update(float lr);
 };
 
 class ReLU : public Layer
@@ -32,6 +33,7 @@ public:
 
     void pass(Eigen::VectorXf &a) override;
     void backward(Eigen::VectorXf &delta) override;
+    void update(float lr) override;
 };
 
 class Linear : public Layer
@@ -66,6 +68,7 @@ public:
     void backward(Eigen::VectorXf &delta) override;
 
     void print();
+    void update(float lr) override;
 };
 
 class Softmax : public Layer
@@ -75,6 +78,7 @@ public:
     Eigen::VectorXf z;
     void pass(Eigen::VectorXf &a) override;
     void backward(Eigen::VectorXf &delta) override;
+    void update(float lr) override;
 };
 
 #endif

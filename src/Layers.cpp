@@ -22,7 +22,13 @@ void Layer::backward(Eigen::VectorXf &delta)
 {
     std::cout << "Failed to call backward() child. Fallback parent function." << std::endl;
     std::exit(1);
-}
+};
+
+void Layer::update(float lr)
+{
+    std::cout << "Failed to call update() child. Fallback to parent function" << std::endl;
+    std::exit(1);
+};
 
 ReLU::ReLU()
 {
@@ -42,7 +48,9 @@ void ReLU::backward(Eigen::VectorXf &delta)
 {
     Eigen::VectorXf relu_grad = (this->input_cache.array() > 0.0f).cast<float>();
     delta = delta.cwiseProduct(relu_grad);
-}
+};
+
+void ReLU::update(float lr) { int i = 0; };
 
 Linear::Linear(int in, int out) : in_feature(in), out_feature(out)
 {
@@ -96,6 +104,12 @@ void Linear::backward(Eigen::VectorXf &delta)
     Eigen::VectorXf delta_prev_aug = this->W.transpose() * delta;
 
     delta = delta_prev_aug.head(input_cache.size());
+};
+
+void Linear::update(float lr)
+{
+    this->W -= this->grad * lr;
+    this->grad.setZero();
 }
 
 Softmax::Softmax()
@@ -118,4 +132,6 @@ void Softmax::backward(Eigen::VectorXf &delta)
 
     // do nothing since this is the last layer and the equation is just collapsed to y^ - y calculated outside
     // we have to have something since the layers call this function for  all layers
-}
+};
+
+void Softmax::update(float lr) { int i = 0; };

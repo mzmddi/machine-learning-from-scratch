@@ -27,6 +27,8 @@ class Model
 
     int epochs = 2;
 
+    float lr = 0.0001f;
+
 public:
     Model();
 
@@ -39,6 +41,8 @@ public:
 
     void set_loss(std::string s);
 
+    void set_lr(float s) { this->lr = s; };
+
     void train();
 
 private:
@@ -48,6 +52,8 @@ private:
 
     void back();
     // backprop function
+
+    void update();
 };
 
 #endif
