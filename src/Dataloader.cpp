@@ -144,8 +144,17 @@ void DataLoader::next(Sample &s)
 
         const float *feature_ptr = this->train_data.data() + (this->train_idx * this->num_of_features);
 
+        s.original = Eigen::Map<const Eigen::VectorXf>(feature_ptr, this->num_of_features);
+
         s.features = Eigen::Map<const Eigen::VectorXf>(feature_ptr, this->num_of_features);
 
         this->train_idx += 1;
     }
+}
+
+void DataLoader::reset(Sample &s)
+{
+    this->train_idx = 0;
+
+    s.done = false;
 }

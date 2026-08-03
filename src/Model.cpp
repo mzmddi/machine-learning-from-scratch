@@ -141,6 +141,11 @@ void Model::train()
                       << std::endl;
 
             this->back();
+
+
+
+
+            this->dl->reset();
             std::exit(0);
         }
     }

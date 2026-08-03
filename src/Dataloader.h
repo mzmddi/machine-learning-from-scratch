@@ -30,7 +30,6 @@ public:
     bool feature_num_set = false;
     int num_of_train_sample = 0;
     int num_of_test_sample = 0;
-    int train_data_index = 0;
 
     int train_idx = 0;
 
@@ -39,5 +38,7 @@ public:
     void print();
 
     void next(Sample &s);
+
+    void reset(Sample &s);
 };
 #endif
