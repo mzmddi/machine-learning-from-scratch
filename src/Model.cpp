@@ -115,7 +115,7 @@ void Model::update()
         this->layer_list[i]->update(this->lr);
     }
 
-    std::cout << "done with updating the weights" << std::endl;
+    // std::cout << "done with updating the weights" << std::endl;
 }
 
 void Model::train()
@@ -125,7 +125,9 @@ void Model::train()
     for (int i = 0; i < this->epochs; i++)
     {
 
-        std::cout << "=== EPOCH " << i + 1 << " ===" << std::endl;
+        float sum_loss = 0.0f;
+
+        int num_inputs = 0;
 
         while (true)
         {
@@ -134,19 +136,24 @@ void Model::train()
             {
                 break;
             }
+
+            num_inputs++;
             this->forward_pass();
 
-            float loss = this->loss->compute_loss(this->s);
-            std::cout << "Loss: " << loss << "\n"
-                      << std::endl;
+            sum_loss += this->loss->compute_loss(this->s);
+
+            // std::cout << "Loss: " << loss << std::endl;
 
             this->back();
 
+            this->update();
 
-
-
-            this->dl->reset();
-            std::exit(0);
+            if (num_inputs % 50 == 0)
+            {
+                std::cout << "\rEPOCH [" << i + 1 << "] @ " << num_inputs << std::flush;
+            }
         }
+        this->dl->reset(this->s);
+        std::cout << "\nEPOCH [" << i + 1 << "] \t AVG LOSS: " << sum_loss / num_inputs << std::endl;
     }
 }

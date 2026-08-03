@@ -25,7 +25,7 @@ class Model
 
     bool initialised_sample = false;
 
-    int epochs = 2;
+    int epochs = 10;
 
     float lr = 0.0001f;
 

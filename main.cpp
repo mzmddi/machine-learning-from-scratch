@@ -30,7 +30,9 @@ int main()
     m.add_linear(250, 10);
     m.add_Softmax();
 
-    m.set_lr(0.004f);
+    m.set_lr(0.0004f);
+
+    m.set_epochs(30);
 
     std::cout << "--- start training ---" << std::endl;
 
