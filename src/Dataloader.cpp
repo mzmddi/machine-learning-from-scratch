@@ -117,8 +117,11 @@ void DataLoader::print()
 void DataLoader::next(Sample &s)
 {
 
-    if (this->train_idx == this->num_of_train_sample)
+    if (this->train_idx == this->num_of_train_sample || this->train_idx == 2000)
     {
+
+        // THE OR SECTION OF THE IF STATEMENT IF JUST HERE FOR DEVELOPMENT BECAUSE I DO NOT WANT TO WAIT FOR ALL 60k INPUTS TO PASS!!!
+        // SHOULD BE REMOVED ONCE EVERYTHING IS DONE
         s.done = true;
     }
     else
