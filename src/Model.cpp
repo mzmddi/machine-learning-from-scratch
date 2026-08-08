@@ -8,6 +8,8 @@
 #include "Sample.h"
 #include "Loss.h"
 #include <iostream>
+#include <regex>
+#include <fstream>
 
 // --- CODE ---
 
@@ -157,3 +159,43 @@ void Model::train()
         std::cout << "\nEPOCH [" << i + 1 << "] \t AVG LOSS: " << sum_loss / num_inputs << std::endl;
     }
 }
+
+void Model::save(std::string filename)
+{
+    // 3 options : binary, json or csv
+    // specified with the filename given
+
+    std::regex pattern(R"(^(.+)(\.)([^.]+)$)");
+
+    std::smatch matches;
+
+    if (std::regex_match(filename, matches, pattern))
+    {
+
+        // std::ofstream out(matches[0].str(), std::ios::binary);
+
+        std::ofstream out;
+        out.open(filename, std::ios::binary);
+        if (!out.is_open())
+        {
+            std::cout << "Cannot open binary file in model::save()" << std::endl;
+            std::exit(1);
+        }
+
+        for (int i = 0; i < this->layer_list.size(); i++)
+        {
+            this->layer_list[i]->save(out);
+        }
+
+        out.flush();
+        out.close();
+        std::cout << "Model::save() DONE" << std::endl;
+    }
+    else
+    {
+        std::cout << "Filename given for model::save() does not match pattern." << std::endl;
+        std::exit(1);
+    }
+}
+
+void Model::load(std::string filename) {}

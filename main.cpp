@@ -7,10 +7,11 @@
 #include "Model.h"
 #include "Dataloader.h"
 #include "Sample.h"
+#include <filesystem>
+#include <vector>
 
 int main()
 {
-
     std::cout << " --- Start Dataloader ---" << std::endl;
     DataLoader dl = DataLoader("../assets/mnist_train.csv", "../assets/mnist_test.csv");
     std::cout << "Done creating the Dataloader" << std::endl;
@@ -32,11 +33,15 @@ int main()
 
     m.set_lr(0.0004f);
 
-    m.set_epochs(30);
+    m.set_epochs(2);
 
     std::cout << "--- start training ---" << std::endl;
 
     m.train();
+
+    std::cout << "--- saving the model ---" << std::endl;
+
+    m.save("test_save.bin");
 
     return 0;
 }

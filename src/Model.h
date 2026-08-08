@@ -45,6 +45,9 @@ public:
 
     void train();
 
+    void save(std::string filename);
+    void load(std::string filename);
+
 private:
     void forward_pass();
     // inner forward pass function.

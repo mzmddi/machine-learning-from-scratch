@@ -7,6 +7,7 @@
 #include <Eigen/Dense>
 #include <string>
 #include <iostream>
+#include <fstream>
 
 // --- CODE ---
 
@@ -22,6 +23,7 @@ public:
     virtual void pass(Eigen::VectorXf &a);
     virtual void backward(Eigen::VectorXf &delta);
     virtual void update(float lr);
+    virtual void save(std::ofstream &out);
 };
 
 class ReLU : public Layer
@@ -34,6 +36,7 @@ public:
     void pass(Eigen::VectorXf &a) override;
     void backward(Eigen::VectorXf &delta) override;
     void update(float lr) override;
+    void save(std::ofstream &out) override;
 };
 
 class Linear : public Layer
@@ -69,6 +72,7 @@ public:
 
     void print();
     void update(float lr) override;
+    void save(std::ofstream &out) override;
 };
 
 class Softmax : public Layer
@@ -79,6 +83,7 @@ public:
     void pass(Eigen::VectorXf &a) override;
     void backward(Eigen::VectorXf &delta) override;
     void update(float lr) override;
+    void save(std::ofstream &out) override;
 };
 
 #endif

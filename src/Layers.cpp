@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <cmath>
+#include <fstream>
 
 #include "Layers.h"
 
@@ -30,6 +31,12 @@ void Layer::update(float lr)
     std::exit(1);
 };
 
+void Layer::save(std::ofstream &out)
+{
+    std::cout << "Failed to call save() child. Fallback to parent function." << std::endl;
+    std::exit(1);
+}
+
 ReLU::ReLU()
 {
     this->name = "ReLU";
@@ -51,6 +58,12 @@ void ReLU::backward(Eigen::VectorXf &delta)
 };
 
 void ReLU::update(float lr) { int i = 0; };
+
+void ReLU::save(std::ofstream &out)
+{
+    int layer_id = 1;
+    out.write(reinterpret_cast<const char *>(&layer_id), sizeof(int));
+}
 
 Linear::Linear(int in, int out) : in_feature(in), out_feature(out)
 {
@@ -112,6 +125,20 @@ void Linear::update(float lr)
     this->grad.setZero();
 }
 
+void Linear::save(std::ofstream &out)
+{
+    int layer_id = 0;
+    out.write(reinterpret_cast<const char *>(&layer_id), sizeof(int));
+
+    int rows = static_cast<int>(this->W.rows());
+    int cols = static_cast<int>(this->W.cols());
+    out.write(reinterpret_cast<const char *>(&rows), sizeof(int));
+    out.write(reinterpret_cast<const char *>(&cols), sizeof(int));
+
+    std::streamsize num_floats = static_cast<std::streamsize>(rows) * cols;
+    out.write(reinterpret_cast<const char *>(this->W.data()), num_floats * sizeof(float));
+}
+
 Softmax::Softmax()
 {
     this->name = "Softmax";
@@ -135,3 +162,9 @@ void Softmax::backward(Eigen::VectorXf &delta)
 };
 
 void Softmax::update(float lr) { int i = 0; };
+
+void Softmax::save(std::ofstream &out)
+{
+    int layer_id = 2;
+    out.write(reinterpret_cast<const char *>(&layer_id), sizeof(int));
+}
