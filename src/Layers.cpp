@@ -37,6 +37,19 @@ void Layer::save(std::ofstream &out)
     std::exit(1);
 }
 
+void Layer::load(std::ifstream &in)
+{
+
+    std::cout << "Failed to call load() child. Fallback to parent function." << std::endl;
+    std::exit(1);
+}
+void Layer::print()
+{
+
+    std::cout << "Failed to call print() child. Fallback to parent function." << std::endl;
+    std::exit(1);
+}
+
 ReLU::ReLU()
 {
     this->name = "ReLU";
@@ -57,13 +70,17 @@ void ReLU::backward(Eigen::VectorXf &delta)
     delta = delta.cwiseProduct(relu_grad);
 };
 
-void ReLU::update(float lr) { int i = 0; };
+void ReLU::update(float lr) {};
 
 void ReLU::save(std::ofstream &out)
 {
     int layer_id = 1;
     out.write(reinterpret_cast<const char *>(&layer_id), sizeof(int));
 }
+
+void ReLU::load(std::ifstream &in) {}
+
+void ReLU::print() { std::cout << this->name << std::endl; }
 
 Linear::Linear(int in, int out) : in_feature(in), out_feature(out)
 {
@@ -84,15 +101,7 @@ Linear::Linear(int in, int out) : in_feature(in), out_feature(out)
 void Linear::print()
 {
 
-    // Arguments: precision, flags, coeff_sep, row_sep, row_prefix, row_suffix, mat_prefix, mat_suffix
-    Eigen::IOFormat TwoDigitFmt(2, 0, " ", "\n", "", "", "", "");
-
-    std::cout << "========================================\n"
-              << " Linear Layer Summary\n"
-              << "========================================\n"
-              << " Weight Matrix Shape: (" << this->W.rows() << "x" << this->W.cols() << ")\n"
-              << this->W.format(TwoDigitFmt) << "\n"
-              << "========================================";
+    std::cout << this->name << this->W.rows() << "x" << this->W.cols() << std::endl;
 };
 
 void Linear::pass(Eigen::VectorXf &a)
@@ -132,12 +141,25 @@ void Linear::save(std::ofstream &out)
 
     int rows = static_cast<int>(this->W.rows());
     int cols = static_cast<int>(this->W.cols());
+
+    std::cout << "[DEBUG SAVE] Linear layer dimensions: " << rows << "x" << cols << std::endl;
     out.write(reinterpret_cast<const char *>(&rows), sizeof(int));
     out.write(reinterpret_cast<const char *>(&cols), sizeof(int));
 
     std::streamsize num_floats = static_cast<std::streamsize>(rows) * cols;
     out.write(reinterpret_cast<const char *>(this->W.data()), num_floats * sizeof(float));
-}
+};
+
+void Linear::load(std::ifstream &in)
+{
+
+    std::streamsize num_floats = static_cast<std::streamsize>(this->W.rows()) * this->W.cols();
+    std::cout << "[DEBUG LINEAR LOAD] Matrix W rows=" << this->W.rows()
+              << " cols=" << this->W.cols()
+              << " reading " << num_floats * sizeof(float) << " bytes" << std::endl;
+
+    in.read(reinterpret_cast<char *>(this->W.data()), num_floats * sizeof(float));
+};
 
 Softmax::Softmax()
 {
@@ -153,18 +175,15 @@ void Softmax::pass(Eigen::VectorXf &a)
     this->z = a;
 };
 
-void Softmax::backward(Eigen::VectorXf &delta)
-{
-    int i = 1;
+void Softmax::backward(Eigen::VectorXf &delta) {};
 
-    // do nothing since this is the last layer and the equation is just collapsed to y^ - y calculated outside
-    // we have to have something since the layers call this function for  all layers
-};
-
-void Softmax::update(float lr) { int i = 0; };
+void Softmax::update(float lr) {};
 
 void Softmax::save(std::ofstream &out)
 {
     int layer_id = 2;
     out.write(reinterpret_cast<const char *>(&layer_id), sizeof(int));
-}
+};
+void Softmax::load(std::ifstream &in) {};
+
+void Softmax::print() { std::cout << this->name << std::endl; }

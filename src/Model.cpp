@@ -51,18 +51,9 @@ void Model::print()
 
     for (int i = 0; i < this->layer_list.size(); i++)
     {
-        if (this->layer_list.at(i)->get_name() == "Linear")
-        {
-            std::cout << "layer [" << i << "]: " << this->layer_list.at(i)->get_name() << " in=" << this->layer_list.at(i)->in_feature << " out=" << this->layer_list.at(i)->out_feature << std::endl;
-        }
-        else if (this->layer_list.at(i)->get_name() == "ReLU")
-        {
-            std::cout << "layer [" << i << "]: " << this->layer_list.at(i)->get_name() << std::endl;
-        }
-        else if (this->layer_list.at(i)->get_name() == "Sigmoid")
-        {
-            std::cout << "layer [" << i << "]: " << this->layer_list.at(i)->get_name() << std::endl;
-        };
+        std::cout << "layer [" << i << "]: ";
+        this->layer_list[i]->print();
+        std::cout << " " << std::endl;
     };
 };
 
@@ -198,4 +189,81 @@ void Model::save(std::string filename)
     }
 }
 
-void Model::load(std::string filename) {}
+void Model::load(std::string filename)
+{
+    // 0 => linear
+    // 1 => ReLU
+    // 2 => softmax
+
+    std::regex pattern(R"(^(.+)(\.)([^.]+)$)");
+    std::smatch matches;
+
+    if (!std::regex_match(filename, matches, pattern) || matches[3] != "bin")
+    {
+        std::cerr << "Invalid filename format for Model::load(). Expected .bin extension." << std::endl;
+        std::exit(1);
+    }
+
+    std::ifstream in(filename, std::ios::binary);
+    if (!in.is_open())
+    {
+        std::cout << "Could not open " << filename << " in model::load()" << std::endl;
+        std::exit(1);
+    }
+
+    // logic: read layer_id -> create layer and add layer to model -> if linear, load the weights
+
+    int layer_id = 0;
+    while (in.read(reinterpret_cast<char *>(&layer_id), sizeof(int)))
+    {
+        Layer *new_layer = nullptr;
+
+        switch (layer_id)
+        {
+        case 0:
+        {
+            int rows = 0;
+            int cols = 0;
+
+            in.read(reinterpret_cast<char *>(&rows), sizeof(int));
+            in.read(reinterpret_cast<char *>(&cols), sizeof(int));
+
+            int out_features = rows;
+            int in_features = cols - 1;
+
+            std::cout << "[DEBUG LOAD] Linear expected dims: " << in_features << "x" << out_features << std::endl;
+
+            this->add_linear(in_features, out_features);
+
+            std::cout << "[DEBUG LOAD] Stream pos BEFORE Linear::load(): " << in.tellg() << std::endl;
+            this->layer_list.back()->load(in);
+            std::cout << "[DEBUG LOAD] Stream pos AFTER Linear::load(): " << in.tellg() << std::endl;
+            std::cout << "[DEBUG] - Linear layer done" << std::endl;
+            break;
+        }
+
+        case 1:
+        {
+            this->add_ReLU();
+            this->layer_list.back()->load(in);
+            std::cout << "[DEBUG] - ReLU layer done" << std::endl;
+            break;
+        }
+
+        case 2:
+        {
+            this->add_Softmax();
+            this->layer_list.back()->load(in);
+            std::cout << "[DEBUG] - Softmax layer done" << std::endl;
+            break;
+        }
+        default:
+            std::cout << "Could not read binary file in model::load()" << std::endl;
+            std::exit(1);
+
+            // add more cases in the future if new types of layers are created
+        }
+    }
+    in.close();
+    std::cout << "Model Successfully loaded from " << filename << std::endl;
+}
