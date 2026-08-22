@@ -1,7 +1,7 @@
 # The base operating system to use
 FROM ubuntu:20.04
 
-ARG INTALL_CATCH2=false
+ARG INSTALL_CATCH2=false
 
 RUN rm -rf /var/lib/apt/lists/*
 # removing useless stuff that comes with the docker container
