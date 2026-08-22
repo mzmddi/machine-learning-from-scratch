@@ -6,7 +6,7 @@ ARG INSTALL_CATCH2=false
 RUN rm -rf /var/lib/apt/lists/*
 # removing useless stuff that comes with the docker container
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential cmake curl
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential cmake curl git
 
 RUN mkdir -p /usr/local/include/Eigen
 # making the directory of the Eigen library
