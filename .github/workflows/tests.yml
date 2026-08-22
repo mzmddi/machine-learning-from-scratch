@@ -11,12 +11,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build docker container
-        run: docker build -f Dockerfile -t ml-env .
+        run: docker build -f Dockerfile.test -t ml-env .
 
-      - name: Get in the container
+      - name: Get in the container, compile and RUN
         run: |
           docker run --rm -v "${PWD}:/workspace" -w /workspace ml-env bash -c "
             mkdir -p build && cd build && rm -rf * &&
-            cmake ../ && make &&
-            if [ -f ./ml ]; then ./ml; else echo 'Executable ml not found!' && exit 1; fi
+            cmake -DBUILD_TESTS=ON ../ && make &&
+            ctest --output-on-failure
           "
