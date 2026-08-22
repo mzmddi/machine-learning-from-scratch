@@ -57,13 +57,13 @@ void Model::print()
     };
 };
 
-void Model::forward_pass()
+void Model::forward_pass(Sample &s)
 {
 
     for (int i = 0; i < this->layer_list.size(); i++)
     {
 
-        this->layer_list.at(i)->pass(this->s.features);
+        this->layer_list.at(i)->pass(s.features);
     }
 };
 
@@ -86,10 +86,10 @@ void Model::set_loss(std::string s)
     // must follow the pattern inherited by the parent class Loss.
 }
 
-void Model::back()
+void Model::back(Sample &s)
 {
 
-    Eigen::VectorXf ev = this->s.features - this->s.label;
+    Eigen::VectorXf ev = s.features - s.label;
 
     for (int i = static_cast<int>(this->layer_list.size()) - 1; i >= 0; --i)
     {
@@ -118,26 +118,26 @@ void Model::train()
     for (int i = 0; i < this->epochs; i++)
     {
 
+        Sample s_train;
+
         float sum_loss = 0.0f;
 
         int num_inputs = 0;
 
         while (true)
         {
-            this->dl->next(this->s);
-            if (this->s.done)
+            this->dl_train->next(s_train);
+            if (s_train.done)
             {
                 break;
             }
 
             num_inputs++;
-            this->forward_pass();
+            this->forward_pass(s_train);
 
-            sum_loss += this->loss->compute_loss(this->s);
+            sum_loss += this->loss->compute_loss(s_train);
 
-            // std::cout << "Loss: " << loss << std::endl;
-
-            this->back();
+            this->back(s_train);
 
             this->update();
 
@@ -146,9 +146,46 @@ void Model::train()
                 std::cout << "\rEPOCH [" << i + 1 << "] @ " << num_inputs << std::flush;
             }
         }
-        this->dl->reset(this->s);
+        this->dl_train->reset(s_train);
         std::cout << "\nEPOCH [" << i + 1 << "] \t AVG LOSS: " << sum_loss / num_inputs << std::endl;
+
+        if (i % this->test_interval == 0 && i != 0)
+        {
+            this->test();
+        }
     }
+}
+
+void Model::test()
+{
+    Sample s_test;
+
+    float sum_loss = 0.0f;
+
+    int num_inputs = 0;
+
+    while (true)
+    {
+        this->dl_test->next(s_test);
+
+        if (s_test.done)
+        {
+            break;
+        }
+
+        num_inputs++;
+
+        this->forward_pass(s_test);
+
+        sum_loss += this->loss->compute_loss(s_test);
+
+        if (num_inputs % 50 == 0)
+        {
+            std::cout << "\rTEST @ " << num_inputs << std::flush;
+        }
+    }
+    this->dl_test->reset(s_test);
+    std::cout << "\nTEST \t\t AVG LOSS: " << sum_loss / num_inputs << std::endl;
 }
 
 void Model::save(std::string filename)
