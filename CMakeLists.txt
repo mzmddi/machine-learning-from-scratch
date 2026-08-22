@@ -5,6 +5,10 @@ project(ml)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(BUILD_TESTS "Build tests using Catch2" OFF)
+
+
+
 # ENCS Eigen3 CMake setup
 if (WIN32)
     include_directories(C:/eigen-3.4.1/)
@@ -25,9 +29,21 @@ else()
     endif()
 endif()
 
-
-
 include_directories(src/)
 aux_source_directory(src SOURCE)
 
-add_executable(ml main.cpp ${SOURCE})
+if(BUILD_TESTS)
+    enable_testing()
+    find_package(Catch2 3 REQUIRED)
+    add_executable(ml tests/main.cpp ${SOURCE})
+    target_link_libraries(ml PRIVATE Catch2::Catch2WithMain)
+    include(CTest)
+    include(Catch)
+    catch_discover_tests(ml)
+else()
+    add_executable(ml main.cpp ${SOURCE})
+endif()
+
+
+
+
