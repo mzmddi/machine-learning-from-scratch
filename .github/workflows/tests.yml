@@ -1,0 +1,22 @@
+name: Test Flow
+
+on: workflow_dispath
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Build docker container
+        run: build -f Dockerfile -t ml-env .
+
+      - name: Get in the container
+        run: |
+          docker run --rm -v "${PWD}:/workspace" -w /workspace ml-env bash -c "
+            mkdir -p build && cd build && rm -rf * &&
+            cmake ../ && make &&
+            if [ -f ./ml ]; then ./ml; else echo 'Executable ml not found!' && exit 1; fi
+          "
