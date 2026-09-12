@@ -19,7 +19,7 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ -f "./ml" ]; then
-clear
+# clear
 ./ml
 fi
 
