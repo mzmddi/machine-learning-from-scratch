@@ -145,6 +145,12 @@ void Model::train()
             {
                 std::cout << "\rEPOCH [" << i + 1 << "] @ " << num_inputs << std::flush;
             }
+
+            // if (num_inputs == 500)
+            // {
+            //     // TEMPORARY STOP MECHANISM
+            //     break;
+            // }
         }
         this->dl_train->reset(s_train);
         std::cout << "\nEPOCH [" << i + 1 << "] \t AVG LOSS: " << sum_loss / num_inputs << std::endl;
