@@ -7,7 +7,7 @@ cd build
 
 cmake ../ 
 
-make -j$(sysctl -n hw.ncpu)
+make
 
 if [ $? -ne 0 ]; then
     echo "Building the executable failed!"
