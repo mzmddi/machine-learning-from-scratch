@@ -4,76 +4,117 @@
 // --- NOTES ---
 /*
 
-size of the inputs need to be consistent across all inputs.
+The constructor has 3 oblig values filename, batch size, window size
+if the user wishes to provide the default value, the user should input 0 for the ints.
 
 */
 // --- INCLUDES ---
 #include <Eigen/Core>
 #include <string>
 #include <vector>
-#include "Sample.h"
 #include <fstream>
+#include <random>
+
+#include "Batch.h"
 // --- CODE ---
 
 class DataLoader
 {
-public:
-    bool LAST_WINDOW = false;
 
+    // --- GATES ---
+
+    std::unordered_map<std::string, bool> gates = {
+        {"GATE_FILE_STREAM_SET", false},
+        {"GATE_OFFSET_MAP_DONE", false}};
+
+    // --- GENERAL CLASS DATA ---
+
+    int batch_size = 1;
+    int num_of_features;
+    int num_batch_in_pool = 5;
+    // original 100
 
     std::string filename;
-    // filename given at the constructor
-
     std::ifstream file;
-    // the ifstream file keeping the connection with the file open
 
-    std::vector<float> data;
-    std::vector<float> label;
-    // data holders
+    std::vector<uint64_t> file_map;
 
-    int feature_size = 0;
-    // the size of the sample, the number of features per sample
+    std::mt19937 rng;
 
-    int num_of_features; // to be removed, but need to change the entire codebase
+    // --- INTERNAL LOGIC DATA ---
 
-    bool feature_num_set = false;
+    // things in this category may need to be reset at any given loop
+    // basically this is fields for a given state of the system
 
-    int num_of_sample = 0;
+    int current_pool_size = 0;
+    int current_filemap_index_reached = 0; // for da pool
+    int current_pool_index_reached = 0;    // for da batch
 
-    std::vector<float> window_data;
-    std::vector<float> window_label;
-    int window_size;
-    // window_size = 100 is the default
+    std::vector<float> pool_data;
+    std::vector<float> pool_label;
 
-    int file_line_idx = 0;
-    // the index corresponding to the location of the file where the current window starts
+    bool LAST_POOL = false;
 
-    int curr_sample_idx = 0;
-    // the current sample index reletive to the window
+public:
+    // all the APIs
 
-    std::vector<uint64_t> offset_map;
+    DataLoader(std::string filename);
+    DataLoader(std::string filename, int batch_size);
+    ~DataLoader() { this->file.close(); };
 
-    DataLoader(std::string filename, int window_size = 200);
+    void get_batch(Batch &b);
 
     void print();
 
-    void next(Sample &s);
+    void shuffle();
 
-    void reset(Sample &s);
+    void test();
 
-    void set_window_size(int s) { this->window_size = s; };
-    // when called, this should recall get_window, so that window is updated with new size
-
-    void get_feature_size();
-    // reads the first line of the
-
-    void get_offset_map();
-    // map the entire dataset and record where the new lines start
-
-    void get_window();
-
+private:
+    void initialize();
     void open_ifstream();
+    void get_file_map();
+    void get_pool();
 
-    ~DataLoader() { this->file.close(); };
+    void next();
+    void reset();
+    // std::vector<float> data;
+    // std::vector<float> label;
+    // // data holders
+
+    // int feature_size = 0;
+    // // the size of the sample, the number of features per sample
+
+    // int num_of_features; // to be removed, but need to change the entire codebase
+
+    // bool feature_num_set = false;
+
+    // int num_of_sample = 0;
+
+    // std::vector<float> window_data;
+    // std::vector<float> window_label;
+
+    // int file_line_idx = 0;
+    // // the index corresponding to the location of the file where the current window starts
+
+    // int curr_sample_idx = 0;
+    // // the current sample index reletive to the window
+
+    // std::vector<uint64_t> offset_map;
+
+    // void print();
+
+    // void set_window_size(int s) { this->window_size = s; };
+    // // when called, this should recall get_window, so that window is updated with new size
+
+    // void get_feature_size();
+    // // reads the first line of the
+
+    // void get_offset_map();
+    // // map the entire dataset and record where the new lines start
+
+    // void get_window();
+
+    // void open_ifstream();
 };
 #endif
