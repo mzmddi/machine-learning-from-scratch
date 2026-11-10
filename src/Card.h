@@ -9,7 +9,7 @@
 #include <iostream>
 #include <Eigen/Core>
 
-#include "Sample.h"
+#include "Batch.h"
 
 // --- CODE ---
 
@@ -21,16 +21,19 @@ namespace ml
     public:
         // --- TEMPORARY VALUES FOR THE INTERNAL LOGIC SHARED BY ALL ---
 
-        Eigen::VectorXf input_vector;
+        Eigen::MatrixXf input_batch;
 
         virtual void print() = 0;
 
         virtual bool has_weight() { return false; }
 
-        virtual void forward(Sample &s) = 0;
-        virtual void backward(Sample &s) = 0;
+        virtual void forward(Batch &b) = 0;
+        virtual void backward(Batch &b) = 0;
         virtual void update(float lr) {};
         virtual void reset_grad() {};
+        virtual void check_shape(Batch &b) {};
+        void check_nan_inf_forward(Batch &b);
+        void check_nan_inf_backward(Batch &b);
 
         virtual ~Card() {}
     };
@@ -52,13 +55,15 @@ namespace ml
 
         bool has_weight() override { return true; };
 
-        void forward(Sample &s) override;
+        void forward(Batch &b) override;
 
-        void backward(Sample &s) override;
+        void backward(Batch &b) override;
 
         void update(float lr) override;
 
         void reset_grad() override;
+
+        void check_shape(Batch &b) override;
 
         ~LinearCard() override {};
     };
@@ -73,8 +78,11 @@ namespace ml
 
         void print() override;
 
-        void forward(Sample &s) override;
-        void backward(Sample &s) override;
+        void forward(Batch &b) override;
+
+        void backward(Batch &b) override;
+
+        void check_shape(Batch &b) override;
 
         ~ReluCard() override {}
     };
@@ -89,8 +97,9 @@ namespace ml
     public:
         LeakyReluCard();
         void print() override;
-        void forward(Sample &s) override;
-        void backward(Sample &s) override;
+        void forward(Batch &b) override;
+
+        void backward(Batch &b) override;
         ~LeakyReluCard() override {}
     };
 
@@ -127,8 +136,10 @@ namespace ml
     public:
         SoftmaxCard();
         void print() override;
-        void forward(Sample &s) override;
-        void backward(Sample &s) override;
+        void forward(Batch &b) override;
+
+        void backward(Batch &b) override;
+        void check_shape(Batch &b) override;
         ~SoftmaxCard() override {}
     };
 
@@ -146,8 +157,9 @@ namespace ml
     public:
         CCECard() {};
         void print() override;
-        void forward(Sample &s) override;
-        void backward(Sample &s) override;
+        void forward(Batch &b) override;
+        void backward(Batch &b) override;
+        void check_shape(Batch &b) override;
         ~CCECard() override {};
     };
 

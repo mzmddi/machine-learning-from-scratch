@@ -41,6 +41,8 @@ class DataLoader
 
     std::mt19937 rng;
 
+    bool NORMALIZE = true;
+
     // --- INTERNAL LOGIC DATA ---
 
     // things in this category may need to be reset at any given loop
@@ -60,24 +62,28 @@ public:
 
     DataLoader(std::string filename);
     DataLoader(std::string filename, int batch_size);
-    ~DataLoader() { this->file.close(); };
+
+    void print();
+    void test();
+
+    void shuffle();
+    void normalize() { this->NORMALIZE = true; };
 
     void get_batch(Batch &b);
 
-    void print();
+    void reset(Batch &b);
 
-    void shuffle();
-
-    void test();
+    ~DataLoader() { this->file.close(); };
 
 private:
     void initialize();
     void open_ifstream();
     void get_file_map();
     void get_pool();
+    void normalize_batch(Batch &b);
 
-    void next();
-    void reset();
+    // void next();
+    // void reset();
     // std::vector<float> data;
     // std::vector<float> label;
     // // data holders

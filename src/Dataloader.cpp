@@ -13,6 +13,14 @@ add window_size in the constructor of DataLoader
 #include "Batch.h"
 // --- CODE ---
 
+void DataLoader::normalize_batch(Batch &b)
+{
+    if (NORMALIZE)
+    {
+        b.batch_sample /= 255.0f;
+    }
+}
+
 void DataLoader::print()
 {
     std::cout << "\n===== DataLoader::print() =====" << std::endl;
@@ -78,11 +86,19 @@ void DataLoader::get_pool()
     this->pool_data.clear();
     this->pool_label.clear();
 
-    int target_pool_size = this->batch_size * this->num_batch_in_pool;
     int start = this->current_filemap_index_reached;
     int total_lines = this->file_map.size();
 
-    if (target_pool_size > total_lines - start - 1)
+    if (start >= total_lines)
+    {
+        this->LAST_POOL = true;
+        this->current_pool_size = 0;
+        return;
+    }
+
+    int target_pool_size = this->batch_size * this->num_batch_in_pool;
+
+    if (target_pool_size > total_lines - start)
     {
         target_pool_size = total_lines - start;
     }
@@ -193,11 +209,17 @@ void DataLoader::get_batch(Batch &b)
         target_amount = this->current_pool_size - this->current_pool_index_reached;
     }
 
+    if (target_amount <= 0)
+    {
+        b.all_batches_done = true;
+        return;
+    }
+
     Eigen::MatrixXf b_data = Eigen::MatrixXf::Zero(this->num_of_features, target_amount);
     // the shape of the batch is (num_features, batch_size)
     // so each sample is a column in the matrix batch
 
-    Eigen::MatrixXf b_label = Eigen::MatrixXf::Zero(target_amount, 1);
+    Eigen::MatrixXf b_label = Eigen::MatrixXf::Zero(10, target_amount);
     // column vector in the datatype of a matrix
 
     for (int i = 0; i < target_amount; i++)
@@ -210,16 +232,30 @@ void DataLoader::get_batch(Batch &b)
             b_data(j, i) = this->pool_data[((this->current_pool_index_reached + i) * this->num_of_features) + j];
         };
 
-        b_label(i, 0) = this->pool_label[this->current_pool_index_reached + i];
+        int label_position = static_cast<int>(this->pool_label[this->current_pool_index_reached + i]);
+
+        b_label(label_position, i) = 1.0f;
     };
 
     this->current_pool_index_reached += target_amount;
 
     b.batch_sample = b_data;
     b.batch_label = b_label;
+
+    this->normalize_batch(b);
+
+    b.samples_in_batch = target_amount;
 }
 
-void DataLoader::test()
+void DataLoader::test() {};
+
+void DataLoader::reset(Batch &b)
 {
-    
+    this->LAST_POOL = false;
+
+    this->current_pool_size = 0;
+    this->current_filemap_index_reached = 0;
+    this->current_pool_index_reached = 0;
+
+    b.all_batches_done = false;
 }

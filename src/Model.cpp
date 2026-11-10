@@ -9,7 +9,7 @@
 #include "Model.h"
 #include "Card.h"
 #include "Dataloader.h"
-#include "Sample.h"
+#include "Batch.h"
 
 // --- CODE ---
 
@@ -82,18 +82,19 @@ void ml::Model::set_test_dataloader(std::unique_ptr<DataLoader> dl)
 {
     this->test_dl = std::move(dl);
 };
+
 void ml::Model::set_train_dataloader(std::unique_ptr<DataLoader> dl)
 {
     this->train_dl = std::move(dl);
 };
 
-void ml::Model::do_forward_pass(Sample &s)
+void ml::Model::do_forward_pass(Batch &b)
 {
 
     for (auto &c : this->cardstack)
     {
 
-        c->forward(s);
+        c->forward(b);
     }
 };
 
@@ -102,12 +103,12 @@ void ml::Model::print_state()
     std::cout << "TOTAL EPOCHS: " << this->epoch << std::endl;
 };
 
-void ml::Model::do_backward_pass(Sample &s)
+void ml::Model::do_backward_pass(Batch &b)
 {
 
     for (int i = this->cardstack.size() - 1; i >= 0; i--)
     {
-        this->cardstack[i]->backward(s);
+        this->cardstack[i]->backward(b);
     }
 }
 
@@ -120,11 +121,9 @@ void ml::Model::do_an_update()
             c->update(this->learning_rate);
         };
     };
-
-    this->do_a_grad_reset();
 };
 
-void ml::Model::do_a_grad_reset()
+void ml::Model::reset_grad(Batch &b)
 {
     for (auto &c : this->cardstack)
     {
@@ -133,18 +132,13 @@ void ml::Model::do_a_grad_reset()
             c->reset_grad();
         };
     };
+
+    b.batch_grad_prod.setZero();
+    b.batch_loss.setZero();
 };
 
-void ml::Model::do_one_epoch(Sample &s)
+void ml::Model::do_one_epoch(Batch &b)
 {
-
-    /*
-    one epoch includes the following:
-        (1) - forward pass
-        (2) - record and keep track of loss
-        (3) - backwards pass
-        (4) - update weights
-    */
 
     int num_inputs = 0;
 
@@ -154,20 +148,21 @@ void ml::Model::do_one_epoch(Sample &s)
 
     while (true)
     {
-        this->train_dl->next(s);
+        this->train_dl->get_batch(b);
 
-        if (s.done)
+        if (b.all_batches_done)
         {
             break;
         };
 
-        s.features = s.features / s.max_value_in_features;
+        this->do_forward_pass(b);
 
-        num_inputs++;
-        this->do_forward_pass(s);
-        current_loss += s.loss;
-        this->do_backward_pass(s);
+        current_loss += b.batch_loss.sum();
+        num_inputs += b.batch_loss.size();
+
+        this->do_backward_pass(b);
         this->do_an_update();
+        this->reset_grad(b);
 
         if (num_inputs % 100 == 0)
         {
@@ -177,57 +172,61 @@ void ml::Model::do_one_epoch(Sample &s)
 
     this->EPOCH_TOTAL_CURRENT_LOSS = current_loss;
     this->EPOCH_AVG_CURRENT_LOSS = current_loss / num_inputs;
-    std::cout << "  " << std::endl;
 };
 
 void ml::Model::do_one_test_pass()
 {
-    int num_inputs_test = 0;
+    int total_inputs = 0;
     double current_loss_test = 0.0f;
-    int correct_predictions = 0;
+    int correct_total_predictions = 0;
 
-    Sample s_test;
+    Batch b_test;
 
     int cached_epoch_reached_test = this->EPOCH_REACHED;
 
     while (true)
     {
-        this->test_dl->next(s_test);
+        int num_samples_in_batch_test = 0;
 
-        if (s_test.done)
+        this->test_dl->get_batch(b_test);
+
+        if (b_test.all_batches_done)
         {
             break;
         }
 
-        s_test.features = s_test.features / s_test.max_value_in_features;
+        this->do_forward_pass(b_test);
+        current_loss_test += b_test.batch_loss.sum();
+        num_samples_in_batch_test = b_test.batch_sample.cols();
 
-        num_inputs_test++;
-        this->do_forward_pass(s_test);
-        current_loss_test += s_test.loss;
+        total_inputs += num_samples_in_batch_test;
 
-        if (num_inputs_test % 100 == 0)
+        if (total_inputs % 50 == 0)
         {
-            std::cout << "\rEPOCH [" << cached_epoch_reached_test << "] TEST: " << num_inputs_test << std::flush;
+            std::cout << "\rEPOCH [" << cached_epoch_reached_test << "] TEST: " << total_inputs << std::flush;
         };
 
-        int max_pred_idx = 0;
-        int true_label_idx = 0;
-
-        s_test.features.maxCoeff(&max_pred_idx);
-        s_test.label.maxCoeff(&true_label_idx);
-
-        if (max_pred_idx == true_label_idx)
+        for (int i = 0; i < num_samples_in_batch_test; ++i)
         {
-            correct_predictions++;
+
+            int max_pred_idx = 0;
+            int true_label_idx = 0;
+
+            b_test.batch_sample.col(i).maxCoeff(&max_pred_idx);
+            b_test.batch_label.col(i).maxCoeff(&true_label_idx);
+
+            if (max_pred_idx == true_label_idx)
+            {
+                correct_total_predictions++;
+            }
         }
     }
 
-    float accuracy = static_cast<float>(correct_predictions) / num_inputs_test * 100.0f;
+    float accuracy = static_cast<float>(correct_total_predictions) / total_inputs * 100.0f;
 
-    std::cout << " " << std::endl;
-    std::cout << "EPOCH [" << this->EPOCH_REACHED << "] TEST AVG LOSS: " << current_loss_test / num_inputs_test << std::endl;
-    std::cout << "EPOCH [" << this->EPOCH_REACHED << "] TEST ACCURACY: " << accuracy << "% (" << correct_predictions << "/" << num_inputs_test << ")" << std::endl;
-    this->test_dl->reset(s_test);
+    std::cout << "\t\tLOSS: " << current_loss_test / total_inputs;
+    std::cout << "\tACCURACY: " << accuracy << "% (" << correct_total_predictions << "/" << total_inputs << ")" << std::endl;
+    this->test_dl->reset(b_test);
 }
 
 void ml::Model::train()
@@ -246,10 +245,10 @@ void ml::Model::train()
             break;
         }
 
-        Sample s;
-        this->do_one_epoch(s);
-        std::cout << "EPOCH [" << this->EPOCH_REACHED << "] AVG LOSS: " << this->EPOCH_AVG_CURRENT_LOSS << std::endl;
-        this->train_dl->reset(s);
+        Batch b;
+        this->do_one_epoch(b);
+        std::cout << "\tLOSS: " << this->EPOCH_AVG_CURRENT_LOSS << std::endl;
+        this->train_dl->reset(b);
 
         if ((this->EPOCH_REACHED % this->test_interval) == 0)
         {
@@ -263,4 +262,18 @@ void ml::Model::train()
     }
 
     std::cout << "DONE ALL EPOCHS" << std::endl;
-};
+}
+
+void ml::Model::shape_check()
+{
+    Batch b;
+
+    this->train_dl->get_batch(b);
+
+    for (int i = 0; i < this->cardstack.size(); i++)
+    {
+        this->cardstack[i]->check_shape(b);
+    }
+
+    this->train_dl->reset(b);
+}

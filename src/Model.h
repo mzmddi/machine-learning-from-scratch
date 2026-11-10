@@ -11,7 +11,7 @@
 
 #include "Card.h"
 #include "Dataloader.h"
-#include "Sample.h"
+#include "Batch.h"
 
 // --- CODE ---
 
@@ -36,7 +36,7 @@ namespace ml
 
         int epoch = 10;
 
-        float learning_rate = 1e-2f;
+        float learning_rate = 1e-1f;
 
         int test_interval = 2;
 
@@ -60,6 +60,14 @@ namespace ml
         void print_architecture();
         void train();
 
+        void normalize_datasets()
+        {
+            this->test_dl->normalize();
+            this->train_dl->normalize();
+        };
+
+        void shape_check();
+
         // --- SETTERS ---
         void set_test_dataloader(std::unique_ptr<DataLoader> dl);
         void set_train_dataloader(std::unique_ptr<DataLoader> dl);
@@ -73,11 +81,11 @@ namespace ml
 
     private:
         void print_state();
-        void do_forward_pass(Sample &s);
-        void do_one_epoch(Sample &s);
-        void do_backward_pass(Sample &s);
+        void do_forward_pass(Batch &b);
+        void do_one_epoch(Batch &b);
+        void do_backward_pass(Batch &b);
         void do_an_update();
-        void do_a_grad_reset();
+        void reset_grad(Batch &b);
         void do_one_test_pass();
         void check_gates(std::vector<std::string> gates);
         void check_all_gates();
