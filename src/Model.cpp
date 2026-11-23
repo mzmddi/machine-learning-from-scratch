@@ -13,12 +13,159 @@
 
 // --- CODE ---
 
-void ml::Model::test() {};
+// --- CAR BUILDER CODE ---
 
-void ml::Model::add(std::unique_ptr<ml::Card> c)
+ml::ModelBuilder &ml::ModelBuilder::train_dataloader_filename(std::string filename)
 {
-    this->cardstack.push_back(std::move(c));
+
+    if (model.gates["GATE_TRAIN_DL"])
+    {
+        // need to log this
+
+        std::cout << "TRAIN_DATALOADER is already set for the model. Skipping double assignment." << std::endl;
+        return *this;
+    }
+
+    model.train_dl = std::move(std::make_unique<DataLoader>(filename));
+
+    model.gates["GATE_TRAIN_DL"] = true;
+
+    return *this;
 };
+
+ml::ModelBuilder &ml::ModelBuilder::test_dataloader_filename(std::string filename)
+{
+    if (model.gates["GATE_TEST_DL"])
+    {
+        // need to log this
+
+        std::cout << "TEST_DATALOADER is already set for the model. Skipping double assignment." << std::endl;
+        return *this;
+    }
+    model.test_dl = std::move(std::make_unique<DataLoader>(filename));
+
+    model.gates["GATE_TEST_DL"] = true;
+
+    return *this;
+};
+
+ml::ModelBuilder &ml::ModelBuilder::train_dataloader_filename(std::string filename, int batch_size)
+{
+
+    if (model.gates["GATE_TRAIN_DL"])
+    {
+        // need to log this
+
+        std::cout << "TRAIN_DATALOADER is already set for the model. Skipping double assignment." << std::endl;
+        return *this;
+    }
+
+    model.train_dl = std::move(std::make_unique<DataLoader>(filename, batch_size));
+
+    model.gates["GATE_TRAIN_DL"] = true;
+
+    return *this;
+};
+
+ml::ModelBuilder &ml::ModelBuilder::test_dataloader_filename(std::string filename, int batch_size)
+{
+    if (model.gates["GATE_TEST_DL"])
+    {
+        // need to log this
+
+        std::cout << "TEST_DATALOADER is already set for the model. Skipping double assignment." << std::endl;
+        return *this;
+    }
+    model.test_dl = std::move(std::make_unique<DataLoader>(filename, batch_size));
+
+    model.gates["GATE_TEST_DL"] = true;
+
+    return *this;
+};
+
+ml::ModelBuilder &ml::ModelBuilder::learning_rate(float lr)
+{
+    model.learning_rate = lr;
+    return *this;
+};
+
+ml::ModelBuilder &ml::ModelBuilder::test_interval(int ti)
+{
+    model.test_interval = ti;
+    return *this;
+};
+
+ml::ModelBuilder &ml::ModelBuilder::epoch(int e)
+{
+    model.epoch = e;
+    model.EPOCH_COUNTER = e;
+
+    return *this;
+};
+
+ml::ModelBuilder &ml::ModelBuilder::shuffle()
+{
+    if (!model.gates["GATE_TEST_DL"] && !model.gates["GATE_TRAIN_DL"])
+    {
+        // log this
+
+        std::cout << "Cannot shuffle TRAIN_DATALOADER & TEST_DATALOADER since they have not been set yet. Put shuffle() after setting both dataloaders." << std::endl;
+        return *this;
+    }
+
+    model.train_dl->shuffle();
+    model.test_dl->shuffle();
+
+    return *this;
+};
+
+ml::ModelBuilder &ml::ModelBuilder::LINEAR(int in, int out)
+{
+    model.cardstack.push_back(std::move(std::make_unique<LinearCard>(in, out)));
+    return *this;
+};
+
+ml::ModelBuilder &ml::ModelBuilder::RELU()
+{
+    model.cardstack.push_back(std::move(std::make_unique<ReluCard>()));
+    return *this;
+};
+
+ml::ModelBuilder &ml::ModelBuilder::LEAKYRELU()
+{
+    model.cardstack.push_back(std::move(std::make_unique<LeakyReluCard>()));
+    return *this;
+};
+
+ml::ModelBuilder &ml::ModelBuilder::SOFTMAX()
+{
+    model.cardstack.push_back(std::move(std::make_unique<SoftmaxCard>()));
+    return *this;
+};
+
+ml::ModelBuilder &ml::ModelBuilder::CCE()
+{
+    model.cardstack.push_back(std::move(std::make_unique<CCECard>()));
+    return *this;
+};
+
+// --- THESE DONT EXIST YET, I NEED TO IMPLEMENT BIN CLASS and REGRESSION ---
+// ml::ModelBuilder &ml::ModelBuilder::BCE()
+// {
+//     model.cardstack.push_back(std::move(std::make_unique<BCECard>()));
+//     return *this;
+// };
+
+// ml::ModelBuilder &ml::ModelBuilder::RMSE()
+// {
+//     model.cardstack.push_back(std::move(std::make_unique<RMSECard>()));
+//     return *this;
+// };
+// ---------------------------------------------------------------------------
+
+// --- MODEL CODE ---
+
+void ml::Model::test() {};
 
 void ml::Model::check_gates(std::vector<std::string> gates)
 {
@@ -76,16 +223,6 @@ void ml::Model::print_architecture()
         c->print();
         counter++;
     }
-}
-
-void ml::Model::set_test_dataloader(std::unique_ptr<DataLoader> dl)
-{
-    this->test_dl = std::move(dl);
-};
-
-void ml::Model::set_train_dataloader(std::unique_ptr<DataLoader> dl)
-{
-    this->train_dl = std::move(dl);
 };
 
 void ml::Model::do_forward_pass(Batch &b)

@@ -11,12 +11,15 @@
 
 #include "Card.h"
 #include "Dataloader.h"
+#include "Optimizer.h"
+
 #include "Batch.h"
 
 // --- CODE ---
 
 namespace ml
 {
+
     class Model
     {
 
@@ -38,7 +41,7 @@ namespace ml
 
         float learning_rate = 1e-1f;
 
-        int test_interval = 2;
+        int test_interval = 10;
 
         // --- TEMPORARY VALUES FOR INTERNAL LOGIC ---
 
@@ -47,10 +50,13 @@ namespace ml
         double EPOCH_TOTAL_CURRENT_LOSS = 0.0f;
         double EPOCH_AVG_CURRENT_LOSS = 0.0f;
 
-    public:
         Model() {};
+        // constructor is private
+        // because i want the user to use the ModelBuilder class
+        // to build the model object
+
+    public:
         void test();
-        void add(std::unique_ptr<Card> c);
         /*
         void set_loss(std::unique_ptr<Loss> l);
         void set_optmizer(std::unique_ptr<Opto> o);
@@ -68,18 +74,9 @@ namespace ml
 
         void shape_check();
 
-        // --- SETTERS ---
-        void set_test_dataloader(std::unique_ptr<DataLoader> dl);
-        void set_train_dataloader(std::unique_ptr<DataLoader> dl);
-        void set_epochs(int s)
-        {
-            this->epoch = s;
-            this->EPOCH_COUNTER = s;
-        };
-        void set_learning_rate(float lr) { this->learning_rate = lr; };
-        void set_test_interval(int s) { this->test_interval = s; };
-
     private:
+        friend class ModelBuilder;
+
         void print_state();
         void do_forward_pass(Batch &b);
         void do_one_epoch(Batch &b);
@@ -91,6 +88,40 @@ namespace ml
         void check_all_gates();
     };
 
+    class ModelBuilder
+    {
+    private:
+        ml::Model model;
+
+    public:
+        ModelBuilder &train_dataloader_filename(std::string filename);
+        ModelBuilder &test_dataloader_filename(std::string filename);
+
+        ModelBuilder &train_dataloader_filename(std::string filename, int batch_size);
+        ModelBuilder &test_dataloader_filename(std::string filename, int batch_size);
+
+        ModelBuilder &learning_rate(float lr);
+        ModelBuilder &test_interval(int ti);
+        ModelBuilder &epoch(int e);
+
+        ModelBuilder &shuffle();
+
+        ModelBuilder &LINEAR(int in, int out);
+        ModelBuilder &RELU();
+        ModelBuilder &LEAKYRELU();
+        ModelBuilder &SOFTMAX();
+
+        ModelBuilder &CCE();
+        // --- they dont exist yet, i need to implement the cards first
+        // ModelBuilder &BCE();
+        // ModelBuilder &RMSE();
+
+        // ModelBuilder &SGD_opt();
+        // ModelBuilder &MOMENTUM_opt();
+        // ModelBuilder &ADAM_opt();
+
+        operator Model() { return std::move(model); };
+    };
 };
 
 #endif

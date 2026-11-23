@@ -161,6 +161,8 @@ void DataLoader::initialize()
     // this->get_pool();
     // get_pool should be called when the training starts
     // most likely when we first call get_batch()
+
+    std::cout << "BATCH_SIZE: " << this->batch_size << std::endl;
 }
 
 DataLoader::DataLoader(std::string filename) : filename(filename)
@@ -174,11 +176,6 @@ DataLoader::DataLoader(std::string filename, int batch_size) : filename(filename
     if (batch_size >= 2)
     {
         this->batch_size = batch_size;
-    }
-    else
-    {
-        std::cout << "BATCH_SIZE given to DATALOADER is less than 2." << std::endl;
-        std::exit(0);
     }
 
     this->initialize();
